@@ -51,6 +51,10 @@ public class PurchaseOrderService {
                 .totalPrice(totalPrice)
                 .shippingFee(0)
                 .isAuto(false)
+                .subtotal(totalPrice)
+                .shippingAddress(request.shippingAddress())
+                .paymentMethod(request.paymentMethod())
+                .paymentStatus(request.paymentStatus())
                 .build();
 
         lines.forEach(line -> order.addItem(PurchaseOrderItem.builder()

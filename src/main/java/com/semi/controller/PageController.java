@@ -24,11 +24,12 @@ public class PageController {
     private static final DateTimeFormatter ORDERED_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     @GetMapping("/checkout")
-    public String checkout(@AuthenticationPrincipal MemberDetails memberDetails) {
+    public String checkout(@AuthenticationPrincipal MemberDetails memberDetails, Model model) {
         if (memberDetails == null) {
             return "redirect:/login.html";
         }
 
+        model.addAttribute("member", memberDetails.getMember());
         return "checkout";
     }
 
@@ -204,9 +205,21 @@ public class PageController {
             Integer totalPrice,
             Integer shippingFee,
             LocalDateTime orderedAt,
-            List<OrderItemRow> items
+            List<OrderItemRow> items,
+            String shippingAddress,
+            String paymentMethod,
+            String paymentStatus,
+            String buyerName,
+            String buyerPhone,
+            String trackingNumber,
+            String estimatedArrival
     ) {
         private static OrderDetailRow from(PurchaseOrder order) {
+            LocalDateTime orderedAt = order.getOrderedAt();
+            LocalDateTime estimatedDate = orderedAt != null ? orderedAt.plusDays(3) : LocalDateTime.now().plusDays(3);
+            String days = new String[]{"일", "월", "화", "수", "목", "금", "토"}[estimatedDate.getDayOfWeek().getValue() % 7];
+            String estimatedArrival = String.format("%d월 %d일(%s)", estimatedDate.getMonthValue(), estimatedDate.getDayOfMonth(), days);
+
             return new OrderDetailRow(
                     order.getOrderNumber(),
                     OrderRow.statusLabel(order.getStatus()),
@@ -221,7 +234,14 @@ public class PageController {
                                     item.subtotal(),
                                     item.getProduct().getImageUrl()
                             ))
-                            .toList()
+                            .toList(),
+                    order.getShippingAddress(),
+                    order.getPaymentMethod(),
+                    order.getPaymentStatus(),
+                    order.getMember() != null ? order.getMember().getName() : "김남해",
+                    order.getMember() != null ? order.getMember().getPhone() : "010-1234-5678",
+                    "TRK" + order.getOrderNumber().replaceAll("[^0-9]", ""),
+                    estimatedArrival
             );
         }
     }

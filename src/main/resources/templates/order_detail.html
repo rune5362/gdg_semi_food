@@ -50,6 +50,12 @@
                         <p><span class="font-bold">&#51452;&#47928;&#48264;&#54840;</span> <span th:text="${order.orderNumber}">PO-20260428-0001</span></p>
                         <p><span class="font-bold">&#51452;&#47928;&#51068;&#49884;</span> <span th:text="${#temporals.format(order.orderedAt, 'yyyy.MM.dd HH:mm')}">2026.04.28 15:30</span></p>
                         <p><span class="font-bold">&#51452;&#47928;&#49345;&#53468;</span> <span th:text="${order.statusLabel}">received</span></p>
+                        <p><span class="font-bold">&#51452;&#47928;&#51088;</span> <span th:text="${order.buyerName}">김남해</span> <span th:text="${order.buyerPhone}">010-1234-5678</span></p>
+                        <p><span class="font-bold">&#48176;&#49569;&#51452;&#49548;</span> <span th:text="${order.shippingAddress}">서울특별시 강남구 테헤란로 123</span></p>
+                        <p><span class="font-bold">&#44208;&#51228;&#48169;&#48277;</span> <span th:text="${order.paymentMethod}">card</span></p>
+                        <p><span class="font-bold">&#44208;&#51228;&#49345;&#53468;</span> <span th:class="${order.paymentStatus == 'completed' ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'}" th:text="${order.paymentStatus == 'completed' ? '&#44208;&#51228; &#50756;&#47308;' : '&#51200;&#51089; &#51473;'}" class="text-green-600 font-semibold">&#44208;&#51228; &#50756;&#47308;</span></p>
+                        <p><span class="font-bold">&#48176;&#49569; &#50696;&#51221;&#51068;</span> <span th:text="${order.estimatedArrival}">4월 30일(목)</span></p>
+                        <p><span class="font-bold">&#48176;&#49569; &#52628;&#51201;</span> <span class="text-primary font-semibold" th:text="${order.trackingNumber}">TRK12345678</span> <span class="text-xs text-gray-400">(CJ&#45824;&#54620;&#53685;&#50868;)</span></p>
                     </div>
                     <p th:if="${order == null and requestedOrderNumber != null}" class="text-gray-500">&#49440;&#53469;&#54620; &#51452;&#47928;&#51032; &#49345;&#49464; &#51221;&#48372;&#47484; &#54869;&#51064;&#54624; &#49688; &#50630;&#49845;&#45768;&#45796;.</p>
                 </div>
@@ -128,9 +134,12 @@
             orderInfo.innerHTML = `
                 <p><span class="font-bold">주문번호</span> ${escapeHtml(order.orderNumber)}</p>
                 <p><span class="font-bold">주문일시</span> ${escapeHtml(order.orderDate)}</p>
-                <p><span class="font-bold">수령인</span> ${escapeHtml(order.buyerName)} ${escapeHtml(order.buyerPhone)}</p>
-                <p><span class="font-bold">배송지</span> ${escapeHtml(order.shippingAddress)}</p>
-                <p><span class="font-bold">도착 예정</span> ${escapeHtml(order.estimatedArrival)}</p>
+                <p><span class="font-bold">주문자</span> ${escapeHtml(order.buyerName)} ${escapeHtml(order.buyerPhone)}</p>
+                <p><span class="font-bold">배송주소</span> ${escapeHtml(order.shippingAddress)}</p>
+                <p><span class="font-bold">결제방법</span> ${escapeHtml(order.paymentMethod || 'card')}</p>
+                <p><span class="font-bold">결제상태</span> <span class="${order.paymentStatus === 'completed' ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'}">${order.paymentStatus === 'completed' ? '결제 완료' : '대기 중'}</span></p>
+                <p><span class="font-bold">배송 예정일</span> ${escapeHtml(order.estimatedArrival)}</p>
+                <p><span class="font-bold">배송 추적</span> <span class="text-primary font-semibold">${escapeHtml(order.trackingNumber || '준비중')}</span> <span class="text-xs text-gray-400">(CJ대한통운)</span></p>
             `;
 
             orderItems.innerHTML = order.items.map((item) => `

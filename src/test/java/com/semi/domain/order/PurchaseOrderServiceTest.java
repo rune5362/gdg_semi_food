@@ -73,7 +73,11 @@ class PurchaseOrderServiceTest {
                 .build();
         CreatePurchaseOrderRequest request = new CreatePurchaseOrderRequest(
                 List.of(new CreatePurchaseOrderRequest.Item(productId, 2)),
-                0
+                0,
+                "Gyeongsangnam-do, Namhae-gun",                            // 3. shippingAddress (추가)
+                "EASY_PAY",                                                // 4. paymentMethod (추가)
+                "PENDING"
+                
         );
 
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));

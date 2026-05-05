@@ -6,7 +6,6 @@
     <title th:text="${product.name} + ' | Heritage Namhae'">Product Detail | Heritage Namhae</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@300;400;500;600&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/product.css}" href="../static/css/product.css">
-    <script th:src="@{/js/auth-guard.js}" src="../static/js/auth-guard.js"></script>
 </head>
 <body>
 <header class="product-header">
@@ -72,8 +71,8 @@
                 <span class="display-price"
                       id="display-price"
                       th:data-unit-price="${product.price != null ? product.price : 0}"
-                      th:text="${product.price != null} ? |${#numbers.formatInteger(product.price, 0, 'COMMA')}원| : '가격 미정'">
-                    0원
+                      th:text="${product.price != null} ? |₩${#numbers.formatInteger(product.price, 0, 'COMMA')}| : '가격 미정'">
+                    ₩0
                 </span>
             </div>
 

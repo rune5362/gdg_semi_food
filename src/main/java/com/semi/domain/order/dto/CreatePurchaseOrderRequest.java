@@ -8,7 +8,10 @@ import java.util.List;
 
 public record CreatePurchaseOrderRequest(
         @NotEmpty List<@Valid Item> items,
-        @Min(0) int usedPoints
+        @Min(0) int usedPoints,
+        String shippingAddress,
+        String paymentMethod,
+        String paymentStatus
 ) {
     public record Item(
             @NotNull Long productId,

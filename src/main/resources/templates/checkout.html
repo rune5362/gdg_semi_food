@@ -105,22 +105,34 @@
             <span class="material-symbols-outlined text-primary">local_shipping</span>
             배송지 정보
           </h2>
-          <button class="text-primary font-semibold text-sm hover:underline" onclick="openAddressModal()">변경</button>
+          <button class="text-primary font-semibold text-sm hover:underline" onclick="execDaumPostcode()">주소 검색</button>
         </div>
-        <div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/15">
-          <div class="flex justify-between items-start">
-            <div>
-              <p class="font-bold text-lg mb-1">김남해</p>
-              <p class="text-on-surface-variant text-sm leading-relaxed">
-                서울특별시 강남구 테헤란로 123 큐레이터 빌딩<br />
-                우편번호 06234<br />
-                대한민국
-              </p>
-              <p class="text-on-surface-variant text-sm mt-3">+82 10-1234-5678</p>
-            </div>
-            <span
-              class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">기본배송지</span>
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/15 space-y-3">
+          <!-- 수령인 -->
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-1">수령인</label>
+            <input type="text" id="recipient-name" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary" placeholder="수령인 이름" th:value="${member?.name ?: ''}">
           </div>
+          <!-- 연락처 -->
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-1">연락처</label>
+            <input type="tel" id="recipient-phone" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary" placeholder="휴대전화" th:value="${member?.phone ?: ''}">
+          </div>
+          <!-- 배송주소 -->
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-1">배송 주소</label>
+            <input type="text" id="shipping-address" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary" placeholder="주소를 검색해주세요" value="" readonly>
+          </div>
+          <!-- 상세주소 -->
+          <div>
+            <input type="text" id="shipping-detail" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary" placeholder="상세 주소 (아파트/동/호)">
+          </div>
+          <!-- 우편번호 -->
+          <div class="flex items-center gap-2">
+            <input type="text" id="shipping-zipcode" class="w-32 bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary" placeholder="우편번호" value="06234" readonly>
+            <span class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">기본배송지</span>
+          </div>
+          <div id="guide" style="color:#999;display:none"></div>
         </div>
       </section>
 
@@ -133,7 +145,7 @@
         <div class="grid grid-cols-3 gap-2">
           <!-- Easy Pay -->
           <label class="relative group cursor-pointer">
-            <input checked class="peer sr-only" name="payment" type="radio" value="easy"
+            <input checked class="peer sr-only" name="payment" type="radio" value="easy-pay"
               onchange="handlePaymentChange(this)" />
             <div
               class="h-full p-3 rounded-lg bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-surface-container-lowest transition-all">
@@ -145,7 +157,7 @@
           </label>
           <!-- Credit Card -->
           <label class="relative group cursor-pointer">
-            <input class="peer sr-only" name="payment" type="radio" value="card" onchange="handlePaymentChange(this)" />
+            <input class="peer sr-only" name="payment" type="radio" value="credit-card" onchange="handlePaymentChange(this)" />
             <div
               class="h-full p-3 rounded-lg bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-surface-container-lowest transition-all">
               <div class="flex flex-col items-center gap-1.5">
@@ -216,7 +228,7 @@
           </label>
           <!-- Virtual Account -->
           <label class="relative group cursor-pointer">
-            <input class="peer sr-only" name="payment" type="radio" value="virtual"
+            <input class="peer sr-only" name="payment" type="radio" value="virtual Account"
               onchange="handlePaymentChange(this)" />
             <div
               class="h-full p-3 rounded-lg bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-surface-container-lowest transition-all">
@@ -391,8 +403,59 @@
       </div>
     </div>
   </div>
-
+  <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script>
+
+ //본 예제에서는 도로명 주소 표기 방식에 대한 법령에 따라, 내려오는 데이터를 조합하여 올바른 주소를 구성하는 방법을 설명합니다.
+   function execDaumPostcode() {
+    new kakao.Postcode({
+        oncomplete: function(data) {
+            var roadAddr = data.roadAddress; 
+            var extraRoadAddr = ''; 
+
+            if(data.bname !== '' && /[동로가]$/.test(data.bname)){
+                extraRoadAddr += data.bname;
+            }
+            if(data.buildingName !== '' && data.apartment === 'Y'){
+               extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+            }
+            if(extraRoadAddr !== ''){
+                extraRoadAddr = ' (' + extraRoadAddr + ')';
+            }
+
+            // [수정] 요소가 존재하는지 확인 후 값 대입 (에러 방지)
+            var zipField = document.getElementById("shippping-zipcode"); // HTML ID와 일치하는지 확인!
+            var addrField = document.getElementById("shipping-address");
+            var detailField = document.getElementById("shipping-detail");
+            var guideTextBox = document.getElementById("guide");
+
+            if(zipField) zipField.value = data.zonecode;
+            if(addrField) addrField.value = roadAddr;
+            
+            if(detailField) {
+                // 상세주소 필드에 참고항목을 넣거나, 사용자가 직접 입력하도록 비워줌
+                detailField.value = extraRoadAddr;
+                detailField.focus(); // 주소 선택 후 상세주소로 포커스 이동
+            }
+
+            if(guideTextBox) {
+                if(data.autoRoadAddress) {
+                    var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+                    guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else if(data.autoJibunAddress) {
+                    var expJibunAddr = data.autoJibunAddress;
+                    guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else {
+                    guideTextBox.innerHTML = '';
+                    guideTextBox.style.display = 'none';
+                }
+            }
+        }
+    }).open();
+}
+
     const NAMHAE_CHECKOUT_KEY = 'namhae_checkout_v1';
     const NAMHAE_SELECTED_ITEMS_KEY = 'namhae_selected_items';
     const NAMHAE_CART_KEY = 'namhae_cart_v1';
@@ -541,7 +604,7 @@
     }
 
     function handlePaymentChange(radio) {
-      document.getElementById('easy-pay-options')?.classList.toggle('hidden', radio.value !== 'easy');
+      document.getElementById('easy-pay-options')?.classList.toggle('hidden', radio.value !== 'easy-pay');
     }
 
     function selectEasyPay(btn) {
@@ -551,28 +614,7 @@
       btn.classList.add('ring-2', 'ring-offset-2', 'ring-primary');
     }
 
-    function openAddressModal() {
-      const modal = document.getElementById('address-modal');
-      const input = document.getElementById('address-search-input');
-      if (modal) modal.classList.remove('hidden');
-      if (input) input.focus();
-    }
-
-    function closeAddressModal() {
-      const modal = document.getElementById('address-modal');
-      const results = document.getElementById('address-results');
-      const input = document.getElementById('address-search-input');
-      if (modal) modal.classList.add('hidden');
-      if (results) results.innerHTML = '';
-      if (input) input.value = '';
-    }
-
-    const mockAddresses = [
-      { zonecode: '06234', roadAddress: '서울특별시 강남구 테헤란로 123 에디터 빌딩', jibunAddress: '서울특별시 강남구 역삼동 123-45' },
-      { zonecode: '06164', roadAddress: '서울특별시 강남구 강남대로 456 일성타워', jibunAddress: '서울특별시 강남구 논현동 456-78' },
-      { zonecode: '04524', roadAddress: '서울특별시 중구 세종대로 110 서울시청', jibunAddress: '서울특별시 중구 태평로1가 31' },
-      { zonecode: '48058', roadAddress: '부산광역시 해운대구 해운대로 620 해운대아이파크', jibunAddress: '부산광역시 해운대구 중동 1398-72' }
-    ];
+    
 
     function searchAddress() {
       const input = document.getElementById('address-search-input');
@@ -635,6 +677,29 @@
         return;
       }
 
+      // Get shipping and payment info
+      const shippingAddress = document.getElementById('shipping-address')?.value || '';
+      const shippingDetail = document.getElementById('shipping-detail')?.value || '';
+      const fullAddress = shippingDetail ? `${shippingAddress}, ${shippingDetail}` : shippingAddress;
+      const recipientName = document.getElementById('recipient-name')?.value || '김남해';
+      const recipientPhone = document.getElementById('recipient-phone')?.value || '010-1234-5678';
+
+      // Get selected payment method
+      const selectedPayment = document.querySelector('input[name="payment"]:checked');
+      const paymentMethod = selectedPayment ? selectedPayment.value : 'easy';
+
+      // Get easy pay sub-option if applicable
+      let paymentDetail = paymentMethod;
+      if (paymentMethod === 'easy-pay') {
+        const selectedEasyPay = document.querySelector('#easy-pay-options button[class*="ring-2"]');
+        if (selectedEasyPay) {
+          const payText = selectedEasyPay.textContent.trim();
+          if (payText.includes('네이버')) paymentDetail = 'NAVERPAY';
+          else if (payText.includes('카카오')) paymentDetail = 'KAKAOPAY';
+          else if (payText.includes('페이팔')) paymentDetail = 'PAYPAL';
+        }
+      }
+
       const orderItems = order.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity
@@ -649,7 +714,10 @@
           },
           body: JSON.stringify({
             items: orderItems,
-            usedPoints: 0
+            usedPoints: 0,
+            shippingAddress: fullAddress,
+            paymentMethod: paymentDetail,
+            paymentStatus: 'COMPLETED'
           })
         });
 
@@ -666,12 +734,14 @@
         const orderData = {
           orderNumber: savedOrder.orderNumber,
           orderDate: savedOrder.orderDate || orderDate.toLocaleString('ko-KR'),
-          buyerName: '김남해',
-          buyerPhone: '010-1234-5678',
-          shippingAddress: '서울특별시 강남구 테헤란로 123 에디터 빌딩, 06234',
+          buyerName: recipientName,
+          buyerPhone: recipientPhone,
+          shippingAddress: fullAddress,
           shippingType: '일반 배송',
           trackingNumber: '준비중',
           estimatedArrival: formattedEstimated,
+          paymentMethod: savedOrder.paymentMethod || paymentDetail,
+          paymentStatus: savedOrder.paymentStatus || 'COMPLETED',
           items: order.items,
           totalPrice: order.totalPrice,
           usedPoints: 0,
@@ -712,6 +782,7 @@
       if (naverBtn) selectEasyPay(naverBtn);
     });
   </script>
+
 </body>
 
 </html>
