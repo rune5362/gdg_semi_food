@@ -72,8 +72,8 @@
                 <span class="display-price"
                       id="display-price"
                       th:data-unit-price="${product.price != null ? product.price : 0}"
-                      th:text="${product.price != null} ? |₩${#numbers.formatInteger(product.price, 0, 'COMMA')}| : '가격 미정'">
-                    ₩0
+                      th:text="${product.price != null} ? |${#numbers.formatInteger(product.price, 0, 'COMMA')}원| : '가격 미정'">
+                    0원
                 </span>
             </div>
 
