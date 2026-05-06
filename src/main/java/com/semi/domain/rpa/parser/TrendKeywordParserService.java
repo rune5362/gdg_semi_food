@@ -25,8 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
-public class TrendKeywordService {
+@Slf4j 
+public class TrendKeywordParserService {
 
     private final RestClient restClient = RestClient.create();
     private final TrendKeywordRepository repository;

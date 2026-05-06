@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class TrendKeywordService {
+public class TrendKeywordService { 
 
     private final TrendKeywordRepository trendKeywordRepository;
 

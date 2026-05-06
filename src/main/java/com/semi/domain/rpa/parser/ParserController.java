@@ -26,21 +26,21 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated // filterChain 설정시 filterChain에서 추가설정 필요, 동작안함
 public class ParserController {
     // TrendKeyord
-    private final TrendKeywordService trendKeywordService;
+    private final TrendKeywordParserService trendKeywordParserService;
     private final TrendKeywordRepository trendKeywordRepository;
     private final SupplierAndProductService supplierAndProductService;
     private final RpaSupplierProductParsingService rpaSupplierProductParsingService;
     
     @GetMapping("/api/TrendKeywords") // http://localhost:8080/api/TrendKeywords
     public List<TrendKeywordResponse.TrendKeywordItem> keywordsFetch() {
-            List<TrendKeywordResponse.TrendKeywordItem> result = trendKeywordService.getNaverKeywords();
+            List<TrendKeywordResponse.TrendKeywordItem> result = trendKeywordParserService.getNaverKeywords();
         return result;
     }
 
     @GetMapping("/api/TrendKeywords/saveWithSequentialId") // http://localhost:8080/api/TrendKeywords/saveWithSequentialId
     public List<TrendKeyword> saveWithSequentialId() {
-            List<TrendKeywordResponse.TrendKeywordItem> trendList = trendKeywordService.getNaverKeywords();
-            List<TrendKeyword> result = trendKeywordService.saveWithSequentialId(trendList);
+            List<TrendKeywordResponse.TrendKeywordItem> trendList = trendKeywordParserService.getNaverKeywords();
+            List<TrendKeyword> result = trendKeywordParserService.saveWithSequentialId(trendList);
 
         return result;
     }
@@ -49,7 +49,7 @@ public class ParserController {
     public List<RpaTrendKeywordParseTarget> rpaTargets(
         @RequestParam(defaultValue = "20") int size
     ) {
-        return trendKeywordService.getTodayRpaParseTargets(size);
+        return trendKeywordParserService.getTodayRpaParseTargets(size);
     }
 
     @GetMapping("/api/Products/rpaSaveToday") // http://localhost:8080/api/Products/rpaSaveToday?size=20

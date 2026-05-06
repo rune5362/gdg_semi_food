@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RpaSupplierProductParsingService {
 
-    private final TrendKeywordService trendKeywordService;
+    private final TrendKeywordParserService trendKeywordParserService;
     private final TrendKeywordRepository trendKeywordRepository;
     private final SupplierAndProductService supplierAndProductService;
     private final RpaLogRepository rpaLogRepository;
@@ -34,7 +34,7 @@ public class RpaSupplierProductParsingService {
         List<RpaSupplierProductParseResult> rpaResults = new ArrayList<>();
 
         try {
-            List<RpaTrendKeywordParseTarget> rpaTargets = trendKeywordService.getTodayRpaParseTargets(requestedSize);
+            List<RpaTrendKeywordParseTarget> rpaTargets = trendKeywordParserService.getTodayRpaParseTargets(requestedSize);
 
             for (RpaTrendKeywordParseTarget rpaTarget : rpaTargets) {
                 rpaResults.add(parseSupplierAndProducts(rpaTarget));

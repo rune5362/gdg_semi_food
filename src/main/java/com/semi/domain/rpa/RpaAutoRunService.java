@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.semi.domain.rpa.parser.TrendKeywordService;
+import com.semi.domain.rpa.parser.TrendKeywordParserService;
 import com.semi.domain.rpa.parser.response.TrendKeywordResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RpaAutoRunService {
 
     private final RpaConfigRepository rpaConfigRepository;
-    private final TrendKeywordService trendKeywordService;
+    private final TrendKeywordParserService trendKeywordParserService;
     private final RpaAsyncExecutionService rpaAsyncExecutionService;
     private final RpaLogRepository rpaLogRepository;
 
@@ -67,8 +67,8 @@ public class RpaAutoRunService {
     private void executeRpaPipeline() {
         try {
             // 1. 키워드 저장
-            List<TrendKeywordResponse.TrendKeywordItem> trendList = trendKeywordService.getNaverKeywords();
-            trendKeywordService.saveWithSequentialId(trendList);
+            List<TrendKeywordResponse.TrendKeywordItem> trendList = trendKeywordParserService.getNaverKeywords();
+            trendKeywordParserService.saveWithSequentialId(trendList);
 
             // 2. 공급자 및 상품 파싱 비동기 실행 (기본 20개 사이즈)
             if (!rpaAsyncExecutionService.tryStartSupplierProductParsing(20)) {
