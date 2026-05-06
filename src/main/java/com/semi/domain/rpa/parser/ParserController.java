@@ -62,8 +62,7 @@ log파일의 형식은 rpa_parsing_yymmdd_time.log
         2-2. 종속성에 대비해 당일을 기준으로 trend_keyword, supplier, product순으로 파싱 하는 기능 필요 
             2-2-1. 파싱을 할 때 당일 파싱한 trend_keyword list를 기준으로 반복문을 돌면서 파싱하는 기능 필요
             2-2-2. 파싱이 중 단 될 때를 대비하여 trend_keyword의 진행상황을 기록하는 기능과 오늘치 trend_keyword 을 삭제 후 다시 작업하는 기능 필요.
-    3. 
-
+    
 */
 
 @RestController

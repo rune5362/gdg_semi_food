@@ -4,3 +4,5 @@
 [2026-05-04 12:17:00 - 2026-05-04 12:18:41] SupplierAndProductService getNaverSuppliers 구현: TrendKeywordService.getNaverKeywords()의 RestClient 호출 흐름을 참고해 공급자/상품 원문 응답 출력, JSON/XML 자동 매핑, ProductItem 기반 SupplierItem 추출을 구현하고 ParserController의 Supplier 조회 API가 getNaverSuppliers()를 호출하도록 정리한 뒤 compileJava로 검증 완료.
 [2026-05-04 14:12:00 - 2026-05-04 14:15:08] ParserController Product 영역 구현: static/test/parser의 product JSON/XML 구조를 참고해 Product 조회 API와 keywordId 기반 Product 저장 API를 추가하고, SupplierAndProductService의 productList 응답 및 saveProductsWithSequentialId 저장 흐름에 연결했으며 Long 파라미터 검증을 NotNull로 맞춘 뒤 compileJava로 검증 완료.
 [2026-05-06 11:08:18 - 2026-05-06 11:08:18] RPA TODO 문서 생성: `src/main/resources/static/test/rpa/TODO_LIST.md`에 현재 프로젝트의 RPA 도메인 기준으로 DB 설계, 백엔드 로직, 기아 상태 방지, UI/UX, 고도화 항목을 정리하고 작업 기록을 남김.
+[2026-05-06 11:14:38 - 2026-05-06 11:14:38] RPA TODO 상세 항목 보강: `TODO_LIST.md`에 TODO 파싱 RPA 시퀀스와 관리자 대시보드 설계 항목을 추가하고, 실행 흐름/로그 저장 방식/CRUD 범위/SSE 실시간 갱신 기준을 현재 프로젝트 용어에 맞춰 정리함.
+[2026-05-06 11:22:33 - 2026-05-06 11:22:33] RPA TODO 문서 재구성: `TODO_LIST.md`를 AI가 읽기 쉬운 형식으로 다시 정리해 기준 정보, 파싱 시퀀스, 대시보드, CRUD 안전 규칙, 구현 우선순위, 주의사항을 분리하고 예시와 실제 구현 기준을 구분함.
