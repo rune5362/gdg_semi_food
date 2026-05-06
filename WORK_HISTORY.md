@@ -23,3 +23,5 @@
 [2026-05-06 14:13:18 - 2026-05-06 14:13:18] RPA 대시보드 실행/뷰별 CRUD 보강: `dashboard.html`의 RPA 실행 버튼이 `TrendKeyword` 저장 후 공급자/상품 RPA를 시작하도록 연결하고, `trend_keyword`, `supplier`, `product`, `rpa_log` 각 view별 날짜 조회/삭제 버튼과 `/rpa/data/daily/view` API를 추가했으며 날짜 조회/삭제 기준을 선택일 하루 범위로 보정한 뒤 compileJava로 검증함.
 [2026-05-06 14:30:13 - 2026-05-06 14:30:13] RPA 키워드 분류 재실행 방지 구현: 공급자/상품 외부 API 호출 전에 `keywordId + syncDate + crawledAt 당일 범위` 기준으로 이미 처리된 분류인지 확인하고, 처리 이력이 있으면 `SKIPPED` 결과를 반환해 대시보드 RPA 재실행 시 추가 상품이 쌓이지 않도록 보강함.
 [2026-05-06 14:41:32 - 2026-05-06 14:41:32] RPA 재실행 스킵 기준 안정화: 대시보드 실행 시 새 `TrendKeyword.id`가 생겨도 같은 분류를 재수집하지 않도록 처리 여부와 상품 중복 검사 기준을 `keywordId`에서 `keyword + rank + syncDate + crawledAt 당일 범위`로 변경하고 compileJava로 검증함.
+[2026-05-06 15:11:10 - 2026-05-06 15:11:47] RPA 대시보드 버튼 호버 스타일 추가: dashboard.html 파일 내 버튼들에 마우스를 올렸을 때 클릭 가능 상태일 경우에만 색상이 변경되도록 :hover:not(:disabled) 기반 CSS 수정 추가함.
+[2026-05-06 15:15:49 - 2026-05-06 15:16:15] RPA 대시보드 input 호버 스타일 추가: dashboard.html 파일 내 input 요소들에 마우스를 올렸을 때 색상이 부드럽게 변경되도록 transition 및 :hover 가상 클래스 추가함.
