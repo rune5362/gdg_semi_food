@@ -38,17 +38,17 @@ public class TrendKeywordService {
         final String targetSiteUrl = "https://snxbest.naver.com/keyword/best?categoryId=50000006&sortType=KEYWORD_POPULAR&periodType=DAILY&ageType=ALL";
         final String targetDataUrl = "https://snxbest.naver.com/api/v1/snxbest/keyword/rank?ageType=ALL&categoryId=50000006&sortType=KEYWORD_POPULAR&periodType=DAILY";
 
-        final String rawJson = restClient.get()
+        final String rawJson = rpaRetry("네이버 키워드 원문 조회", () -> restClient.get()
             .uri(targetDataUrl)
             .header("User-Agent", Constants.Http.USER_AGENT)
             .header("Accept", Constants.Http.CONTENT_TYPE_JSON)
             .retrieve()
-            .body(String.class);
+            .body(String.class));
 
         log.info("네이버 응답 원문: " + rawJson);
         
         // data가 json/xml 둘 다 올 수 있기 때문에, Jackson이 자동으로 파싱하도록 설정
-        final List<TrendKeywordResponse.TrendKeywordItem> response = restClient.get()
+        final List<TrendKeywordResponse.TrendKeywordItem> response = rpaRetry("네이버 키워드 목록 조회", () -> restClient.get()
             .uri(targetDataUrl)
             .header("User-Agent", Constants.Http.USER_AGENT)
             .header("Accept", MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE)
@@ -57,7 +57,7 @@ public class TrendKeywordService {
             // .header("Referer", "https://snxbest.naver.com/")
             // .header("Referer", "https://naver.com")
             .retrieve()
-            .body(new ParameterizedTypeReference<List<TrendKeywordResponse.TrendKeywordItem>>() {});  // 여기서 Jackson MessageConverter가 자동 동작함
+            .body(new ParameterizedTypeReference<List<TrendKeywordResponse.TrendKeywordItem>>() {}));  // 여기서 Jackson MessageConverter가 자동 동작함
             // .body(TrendKeywordResponse.class); // 여기서 Jackson MessageConverter가 자동 동작함
 
         log.info("수신된 데이터: " + response);
@@ -171,5 +171,18 @@ public class TrendKeywordService {
             keyword.getRank(),
             keyword.getCollectedAt()
         );
+    }
+
+    private <T> T rpaRetry(String actionName, java.util.function.Supplier<T> action) {
+        RuntimeException lastException = null;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                return action.get();
+            } catch (RuntimeException exception) {
+                lastException = exception;
+                log.warn("{} 실패. attempt={}/3", actionName, attempt, exception);
+            }
+        }
+        throw lastException;
     }
 }

@@ -40,23 +40,23 @@ public class SupplierAndProductService {
         String sapTargetSiteUrl = String.format(Constants.Snxbest.TARGET_SITE_URL_TEMPLATE, sapRankId, sapSyncDate);
         String sapTargetDataUrl = String.format(Constants.Snxbest.API_V1_FOOD_PRODUCT_DATA_URL_TEMPLATE , sapRankId, sapSyncDate);
 
-        final String sapRawData = restClient.get()
+        final String sapRawData = sapRetry("네이버 공급자/상품 원문 조회", () -> restClient.get()
             .uri(sapTargetDataUrl)
             .header("User-Agent", Constants.Http.USER_AGENT)
             .header("Accept", MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE)
             .header("Referer", sapTargetSiteUrl)
             .retrieve()
-            .body(String.class);
+            .body(String.class));
         log.info("네이버 공급자/상품 응답 원문: " + sapRawData);
 
-        SupplierAndProductResponse response = restClient.get()
+        SupplierAndProductResponse response = sapRetry("네이버 공급자/상품 상세 조회", () -> restClient.get()
             .uri(sapTargetDataUrl)
             .header("User-Agent", Constants.Http.USER_AGENT)
             .header("Accept",  MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE)
             .header("Accept-Language", Constants.Http.ACCEPT_LANGUAGE)
             .header("Referer", sapTargetSiteUrl)
             .retrieve()
-            .body(SupplierAndProductResponse.class); 
+            .body(SupplierAndProductResponse.class)); 
         log.info("수신된 공급자/상품 데이터: " + response);
         return response;
     }
@@ -65,14 +65,14 @@ public class SupplierAndProductService {
         String sapTargetSiteUrl = String.format(Constants.Snxbest.TARGET_SITE_URL_TEMPLATE, sapRankId, sapSyncDate);
         String sapTargetDataUrl = String.format(Constants.Snxbest.API_V1_FOOD_PRODUCT_DATA_URL_TEMPLATE , sapRankId, sapSyncDate);
 
-        SupplierAndProductResponse sapResponse = restClient.get()
+        SupplierAndProductResponse sapResponse = sapRetry("네이버 공급자/상품 조회", () -> restClient.get()
             .uri(sapTargetDataUrl)
             .header("User-Agent", Constants.Http.USER_AGENT)
             .header("Accept", MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE)
             .header("Accept-Language", Constants.Http.ACCEPT_LANGUAGE)
             .header("Referer", sapTargetSiteUrl)
             .retrieve()
-            .body(SupplierAndProductResponse.class);
+            .body(SupplierAndProductResponse.class));
 
         log.info("수신된 공급자/상품 데이터: " + sapResponse);
         return sapResponse;
@@ -295,5 +295,18 @@ public class SupplierAndProductService {
             return sapDefaultValue;
         }
         return sapValue.trim();
+    }
+
+    private <T> T sapRetry(String sapActionName, java.util.function.Supplier<T> sapAction) {
+        RuntimeException sapLastException = null;
+        for (int sapAttempt = 1; sapAttempt <= 3; sapAttempt++) {
+            try {
+                return sapAction.get();
+            } catch (RuntimeException sapException) {
+                sapLastException = sapException;
+                log.warn("{} 실패. attempt={}/3", sapActionName, sapAttempt, sapException);
+            }
+        }
+        throw sapLastException;
     }
 }

@@ -18,6 +18,8 @@ public interface RpaLogRepository extends JpaRepository<RpaLog, Long> {
 
     List<RpaLog> findAllByStartedAtGreaterThanEqualOrderByStartedAtDesc(LocalDateTime start);
 
+    List<RpaLog> findAllByStatusAndStartedAtBefore(RpaStatus status, LocalDateTime startedAt);
+
 
     // [ ]TODO 오늘(입력받은) 날짜를 기준으로 하는 CRUD 구현
         // 참고: findAllByCreatedAtGreaterThanEqual(LocalDateTime start);

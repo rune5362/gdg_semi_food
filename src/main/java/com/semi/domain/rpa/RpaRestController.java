@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.semi.domain.rpa.response.RpaDailyDataSummary;
 import com.semi.domain.rpa.response.RpaDailyDeleteResponse;
 import com.semi.domain.rpa.response.RpaDashboardDataResponse;
+import com.semi.domain.rpa.response.RpaRecoveryResponse;
 import com.semi.domain.rpa.response.RpaRunResponse;
 import com.semi.domain.rpa.response.RpaStatusResponse;
 
@@ -29,6 +30,7 @@ public class RpaRestController {
 
     private final RpaAsyncExecutionService rpaAsyncExecutionService;
     private final RpaDailyDataService rpaDailyDataService;
+    private final RpaRecoveryService rpaRecoveryService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<Void> getDashboard() {
@@ -98,5 +100,12 @@ public class RpaRestController {
                 "RPA 공급자/상품 파싱 작업을 비동기로 시작했습니다.",
                 size
             ));
+    }
+
+    @PostMapping("/recover-stale")
+    public ResponseEntity<RpaRecoveryResponse> recoverStaleRunningLogs(
+        @RequestParam(defaultValue = "60") long staleMinutes
+    ) {
+        return ResponseEntity.ok(rpaRecoveryService.recoverStaleRunningLogs(staleMinutes));
     }
 }
