@@ -69,14 +69,19 @@
     </div>
 
     <!-- PAGE CONTENT -->
-    <div class="page active">
+    <div class="page active products-page">
       <div class="topbar">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <div><span class="topbar-title">Products</span><span class="topbar-breadcrumb">/ 자동발주 시스템</span></div>
         <div style="flex:1"></div>
         <input class="search-box" placeholder="Search products..." id="productSearch">
         <div class="avatar" id="topbarUserInitial" th:text="${currentAdminInitial}">A</div>
       </div>
-      <div class="content">
+      <div class="content products-content">
         <div class="prod-grid" id="productGrid">
           <!-- Products will be loaded here -->
         </div>
@@ -129,5 +134,8 @@
 
   <script src="/js/admin.js"></script>
 
-</body>
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+  </body>
 </html>

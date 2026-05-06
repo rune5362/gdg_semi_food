@@ -4,11 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
@@ -64,11 +66,44 @@ public class GlobalExceptionHandler {
         log.debug("Client disconnected during request processing: {}", ex.getMessage());
     }
 
+    @ExceptionHandler({AsyncRequestNotUsableException.class, HttpMessageNotWritableException.class})
+    public ResponseEntity<Void> handleResponseWriteFailure(Exception ex) throws Exception {
+        if (isClientDisconnect(ex)) {
+            log.debug("Client disconnected while writing response: {}", ex.getMessage());
+            return ResponseEntity.noContent().build();
+        }
+        throw ex;
+    }
+
     /** 예상치 못한 서버 오류 (500) — 내부 오류 내용 노출 금지 */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleUnexpected(Exception ex) {
+        if (isClientDisconnect(ex)) {
+            log.debug("Client disconnected during request processing: {}", ex.getMessage());
+            return ResponseEntity.noContent().build();
+        }
+
         log.error("[500] 예상치 못한 오류: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."));
+    }
+
+    static boolean isClientDisconnect(Throwable ex) {
+        for (Throwable current = ex; current != null; current = current.getCause()) {
+            if (current instanceof ClientAbortException || current instanceof AsyncRequestNotUsableException) {
+                return true;
+            }
+
+            String message = current.getMessage();
+            if (message == null) {
+                continue;
+            }
+
+            String lowerMessage = message.toLowerCase();
+            if (lowerMessage.contains("broken pipe") || lowerMessage.contains("connection reset")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

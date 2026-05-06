@@ -1,5 +1,6 @@
 package com.semi.controller;
 
+import com.semi.controller.dto.AdminOrderPageResponse;
 import com.semi.controller.dto.FilteredExportRequest;
 import com.semi.domain.order.PurchaseOrder;
 import com.semi.domain.order.PurchaseOrderRepository;
@@ -9,12 +10,16 @@ import com.semi.domain.order.dto.OrderItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,10 +33,40 @@ public class AdminOrderController {
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        List<OrderResponse> orders = purchaseOrderRepository.findAll().stream()
+        List<OrderResponse> orders = purchaseOrderRepository.findAll(
+                        Sort.by(Sort.Direction.ASC, "orderedAt").and(Sort.by(Sort.Direction.ASC, "orderNumber"))
+                ).stream()
                 .map(this::convertToOrderResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/list/paged")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AdminOrderPageResponse> getOrdersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "orderedAt").and(Sort.by(Sort.Direction.ASC, "orderNumber"))
+        );
+        var orderPage = purchaseOrderRepository.findAll(pageable);
+        List<OrderResponse> orders = orderPage.stream()
+                .map(this::convertToOrderResponse)
+                .collect(Collectors.toList());
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+
+        return ResponseEntity.ok(new AdminOrderPageResponse(
+                orders,
+                purchaseOrderRepository.countByStatus(OrderStatus.RECEIVED)
+                        + purchaseOrderRepository.countByStatus(OrderStatus.IN_PROGRESS),
+                purchaseOrderRepository.countByOrderedAtBetween(startOfDay, endOfDay),
+                orderPage.hasNext()
+        ));
     }
 
     @GetMapping("/{id}")
@@ -69,9 +104,9 @@ public class AdminOrderController {
                 order.getMember().getName(),
                 order.getMember().getEmail(),
                 order.getMember().getPhone(),
-                order.getShippingAddress(),
-                order.getPaymentMethod(),
-                order.getPaymentStatus(),
+                defaultText(order.getShippingAddress(), "주소 정보 없음"),
+                defaultText(order.getPaymentMethod(), "결제 수단 정보 없음"),
+                defaultText(order.getPaymentStatus(), "결제 상태 정보 없음"),
                 status,
                 order.getOrderedAt(),
                 order.getSubtotal(),
@@ -214,5 +249,9 @@ public class AdminOrderController {
         } catch (IllegalArgumentException e) {
             return OrderResponse.OrderStatus.PROCESSING; // Default status
         }
+    }
+
+    private String defaultText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 }

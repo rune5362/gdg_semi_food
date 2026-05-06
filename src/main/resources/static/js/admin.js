@@ -2,8 +2,55 @@
 
 let selectedOrderId = null;
 
+// Mobile menu toggle functionality
+function initMobileMenu() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const page = document.querySelector('.page');
+    const overlay = document.querySelector('.mobile-menu-overlay');
+    
+    if (mobileMenuToggle && sidebar && page) {
+        mobileMenuToggle.addEventListener('click', function() {
+            const isOpen = sidebar.classList.contains('open');
+            
+            if (isOpen) {
+                sidebar.classList.remove('open');
+                page.classList.remove('sidebar-closed');
+                mobileMenuToggle.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+            } else {
+                sidebar.classList.add('open');
+                page.classList.add('sidebar-closed');
+                mobileMenuToggle.classList.add('active');
+                if (overlay) overlay.classList.add('active');
+            }
+        });
+        
+        // Close menu when clicking overlay
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                sidebar.classList.remove('open');
+                page.classList.remove('sidebar-closed');
+                mobileMenuToggle.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+        
+        // Close menu when window is resized to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                page.classList.remove('sidebar-closed');
+                mobileMenuToggle.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+            }
+        });
+    }
+}
+
 // Load orders on page load
 document.addEventListener('DOMContentLoaded', function () {
+    initMobileMenu();
     loadCurrentAdminProfile();
 
     // Check if we're on the orders page
@@ -383,7 +430,7 @@ function createOrderItem(order) {
     `;
 }
 
-function selectOrder(orderId) {
+function selectOrder(orderId, scrollToDetails = true) {
     selectedOrderId = orderId;
 
     // Update selection UI
@@ -417,7 +464,7 @@ function selectOrder(orderId) {
             console.log('Order totalPrice:', order.totalPrice);
             console.log('===========================================');
             
-            displayOrderDetails(order);
+            displayOrderDetails(order, scrollToDetails);
         })
         .catch(error => {
             console.error('Error loading order details:', error);
@@ -425,7 +472,7 @@ function selectOrder(orderId) {
         });
 }
 
-function displayOrderDetails(order) {
+function displayOrderDetails(order, scrollToDetails = true) {
     const invoiceArea = document.getElementById('invoiceArea');
 
     const statusSteps = getStatusSteps(order.status);
@@ -446,7 +493,7 @@ function displayOrderDetails(order) {
             <div class="inv-status-bar">
                 ${statusSteps.map(step => `<div class="inv-status-step ${step.class}"></div>`).join('')}
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+            <div class="invoice-meta-grid">
                 <div class="inv-section">
                     <div class="inv-lbl">BILL TO</div>
                     <div style="font-weight:700;font-size:14px;color:#1a2e22">${order.customerName}</div>
@@ -470,35 +517,37 @@ function displayOrderDetails(order) {
                     </div>
                 </div>
             </div>
-            <table class="inv-table">
-                <tr>
-                    <th style="width:50%">DESCRIPTION</th>
-                    <th>QTY</th>
-                    <th>UNIT PRICE</th>
-                    <th>AMOUNT</th>
-                </tr>
-                ${order.items.map(item => `
+            <div class="invoice-table-wrap">
+                <table class="inv-table">
                     <tr>
-                        <td>
-                            <div style="font-weight:600;color:#1a2e22">${item.productName}</div>
-                            <div style="font-size:10px;color:#ccc">${item.description || ''}</div>
-                        </td>
-                        <td style="color:#666">${item.quantity}</td>
-                        <td style="color:#666">${formatPrice(item.unitPrice)}</td>
-                        <td><strong>${formatPrice(item.totalPrice)}</strong></td>
+                        <th style="width:50%">DESCRIPTION</th>
+                        <th>QTY</th>
+                        <th>UNIT PRICE</th>
+                        <th>AMOUNT</th>
                     </tr>
-                `).join('')}
-            </table>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:10px;border-top:1px solid #f0f2f0">
-                <div style="display:flex;gap:60px;font-size:12px;color:#aaa">
+                    ${order.items.map(item => `
+                        <tr>
+                            <td>
+                                <div style="font-weight:600;color:#1a2e22">${item.productName}</div>
+                                <div style="font-size:10px;color:#ccc">${item.description || ''}</div>
+                            </td>
+                            <td style="color:#666">${item.quantity}</td>
+                            <td style="color:#666">${formatPrice(item.unitPrice)}</td>
+                            <td><strong>${formatPrice(item.totalPrice)}</strong></td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+            <div class="invoice-total-summary">
+                <div class="invoice-total-row">
                     <span>Subtotal</span>
                     <span>${formatPrice(order.subtotal)}</span>
                 </div>
-                <div style="display:flex;gap:60px;font-size:12px;color:#aaa">
+                <div class="invoice-total-row">
                     <span>Shipping</span>
                     <span style="color:#2d9a5e">${order.shippingFee > 0 ? formatPrice(order.shippingFee) : 'FREE'}</span>
                 </div>
-                <div style="display:flex;gap:48px;font-size:16px;font-weight:700;margin-top:12px;padding-top:12px;border-top:1px solid #e8ece8;align-items:center">
+                <div class="invoice-total-row invoice-total-row-final">
                     <span style="color:#1a2e22">TOTAL</span>
                     <span class="total-pill">${formatPrice(order.subtotal + order.shippingFee)}</span>
                 </div>
@@ -914,7 +963,6 @@ let currentProductName = null;
 let currentAvailableQty = null;
 
 let currentPage = 0;
-// Set page size to 10 products
 const pageSize = 10;
 let isLoading = false;
 let hasMore = true;
@@ -934,32 +982,59 @@ function loadProductsPage(page = 0) {
         loadingIndicator.style.display = 'block';
     }
     
-    fetch(`/api/admin/products/list/paged?page=${page}&size=${pageSize}`)
-        .then(response => response.json())
+    // Add timeout controller
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+    
+    fetch(`/api/admin/products/list/paged?page=${page}&size=${pageSize}`, {
+        signal: controller.signal
+    })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(products => {
             const grid = document.getElementById('productGrid');
             if (grid) {
                 // Use innerHTML for HTML strings instead of appendChild
                 grid.innerHTML = products.map(product => createProductCard(product)).join('');
+                console.log('Product cards rendered');
             }
             
             // Apply dynamic sizing to newly created cards
-            setTimeout(() => {
-                adjustLayoutForScreenSize();
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 50);
+            setTimeout(adjustLayoutForScreenSize, 100);
             
+            // Update pagination info
+            currentPage = page;
+            hasMore = products.length === pageSize;
+            
+            // Render pagination controls
             updatePaginationControls(page, products.length);
-            isLoading = false;
         })
         .catch(error => {
-            console.error('Error loading products:', error);
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                console.error('Request timeout:', error);
+                showToast('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+            } else {
+                console.error('Error loading products:', error);
+                showToast('상품을 불러오는 데 실패했습니다. 다시 시도해주세요.');
+            }
+            
+            const grid = document.getElementById('productGrid');
+            if (grid) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">상품을 불러오는 데 실패했습니다. 다시 시도해주세요.</div>';
+            }
+        })
+        .finally(() => {
+            isLoading = false;
+            const loadingIndicator = document.getElementById('loadingIndicator');
             if (loadingIndicator) {
                 loadingIndicator.style.display = 'none';
             }
-            isLoading = false;
         });
 }
 
@@ -979,10 +1054,17 @@ function searchProductsFromDB(searchTerm, page = 0) {
     // Store current search term for pagination
     currentSearchTerm = searchTerm;
 
-    fetch(`/api/admin/products/search?term=${encodeURIComponent(searchTerm)}&page=${page}&size=${pageSize}`)
+    // Add timeout controller
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+    
+    fetch(`/api/admin/products/search?term=${encodeURIComponent(searchTerm)}&page=${page}&size=${pageSize}`, {
+        signal: controller.signal
+    })
         .then(response => {
+            clearTimeout(timeoutId);
             if (!response.ok) {
-                throw new Error('Search failed');
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
@@ -993,12 +1075,7 @@ function searchProductsFromDB(searchTerm, page = 0) {
             }
             
             // Apply dynamic sizing to newly created cards
-            setTimeout(() => {
-                adjustLayoutForScreenSize();
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 50);
+            setTimeout(adjustLayoutForScreenSize, 100);
             
             // Update pagination for search results
             updatePaginationControls(page, products.length);
@@ -1011,11 +1088,20 @@ function searchProductsFromDB(searchTerm, page = 0) {
             isLoading = false;
         })
         .catch(error => {
-            console.error('Error searching products:', error);
-            showToast('제품 검색에 실패했습니다.');
-            if (loadingIndicator) {
-                loadingIndicator.style.display = 'none';
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                console.error('Search request timeout:', error);
+                showToast('검색 요청 시간이 초과되었습니다. 다시 시도해주세요.');
+            } else {
+                console.error('Error searching products:', error);
+                showToast('검색에 실패했습니다. 다시 시도해주세요.');
             }
+            
+            const grid = document.getElementById('productGrid');
+            if (grid) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">검색 결과가 없거나 오류가 발생했습니다.</div>';
+            }
+            
             isLoading = false;
         });
 }
@@ -1059,64 +1145,43 @@ function adjustLayoutForScreenSize() {
     const pagination = document.getElementById('paginationControls');
     
     if (grid && pagination) {
-        // Calculate optimal layout for screen
-        const headerHeight = 100; // Top bar height
-        const paginationHeight = 80; // Pagination controls height
-        const padding = 32; // Content padding
-        const availableHeight = screenHeight - headerHeight - paginationHeight - padding;
-        
-        // Dynamic card sizing based on screen (smaller for more space)
-        let cardHeight, cardPadding, imageSize, fontSize, infoBoxWidth, nodeBoxWidth;
-        
-        if (screenHeight < 600) {
-            cardHeight = 70;
-            cardPadding = 4;
-            imageSize = 45;
-            fontSize = 10;
+        let cardPadding = 16;
+        let imageSize = 75;
+        let fontSize = 12;
+        let infoBoxWidth = '130px';
+        let nodeBoxWidth = '65px';
+        let gap = 20;
+
+        if (screenWidth <= 480) {
+            cardPadding = 12;
+            imageSize = 56;
+            fontSize = 11;
             infoBoxWidth = '100px';
-            nodeBoxWidth = '45px';
-        } else if (screenHeight < 800) {
-            cardHeight = 90;
-            cardPadding = 6;
-            imageSize = 60;
+            nodeBoxWidth = '48px';
+            gap = 10;
+        } else if (screenWidth <= 768) {
+            cardPadding = 14;
+            imageSize = 64;
+            fontSize = 11;
+            infoBoxWidth = '112px';
+            nodeBoxWidth = '54px';
+            gap = 12;
+        } else if (screenWidth <= 1200) {
+            cardPadding = 14;
+            imageSize = 68;
             fontSize = 11;
             infoBoxWidth = '120px';
-            nodeBoxWidth = '55px';
-        } else {
-            cardHeight = 100;
-            cardPadding = 8;
-            imageSize = 75;
-            fontSize = 12;
-            infoBoxWidth = '130px';
-            nodeBoxWidth = '65px';
+            nodeBoxWidth = '58px';
+            gap = 16;
         }
-        
-        // Adjust for narrow screens
-        if (screenWidth < 800) {
-            cardHeight = Math.max(cardHeight, 70);
-            infoBoxWidth = '90px';
-            nodeBoxWidth = '40px';
-        } else if (screenWidth < 1000) {
-            nodeBoxWidth = '50px';
-        }
-        
-        // Calculate how many rows can fit
-        const gap = screenHeight < 600 ? 8 : 12;
-        const maxRows = Math.floor(availableHeight / (cardHeight + gap));
-        const targetRows = Math.min(maxRows, 5); // Max 5 rows
-        
-        // Apply dynamic styling
+
         grid.style.gap = gap + 'px';
-        // Calculate exact height to fit screen without scrolling
-        const exactGridHeight = (targetRows * (cardHeight + gap)) - gap;
-        grid.style.height = exactGridHeight + 'px';
-        grid.style.overflow = 'hidden';
-        
-        // Ensure pagination is always visible
+        grid.style.height = 'auto';
+        grid.style.maxHeight = 'none';
+        grid.style.overflow = 'visible';
         pagination.style.display = 'flex';
-        
+         
         // Update CSS variables for responsive design
-        document.documentElement.style.setProperty('--card-height', cardHeight + 'px');
         document.documentElement.style.setProperty('--card-padding', cardPadding + 'px');
         document.documentElement.style.setProperty('--image-size', imageSize + 'px');
         document.documentElement.style.setProperty('--font-size', fontSize + 'px');
@@ -1141,44 +1206,6 @@ function adjustLayoutForScreenSize() {
         
         document.documentElement.style.setProperty('--image-columns', imageColumns);
         document.documentElement.style.setProperty('--image-gap', imageGap + 'px');
-        
-        // Apply dynamic styles to existing cards immediately
-        const cards = document.querySelectorAll('.prod-card');
-        cards.forEach(card => {
-            card.style.height = 'auto';
-            card.style.padding = cardPadding + 'px';
-            card.style.gap = '12px';
-            
-            const info = card.querySelector('.prod-info');
-            if (info) {
-                info.style.width = infoBoxWidth;
-                info.style.flexShrink = '0';
-            }
-            
-            const nodeBoxes = card.querySelectorAll('.node-box');
-            nodeBoxes.forEach(box => {
-                box.style.minWidth = nodeBoxWidth;
-                box.style.padding = cardPadding + 'px ' + (cardPadding + 2) + 'px';
-                box.style.fontSize = fontSize + 'px';
-            });
-            
-            // Adjust card height based on description length
-            const description = card.querySelector('.prod-sub');
-            if (description) {
-                const descHeight = description.scrollHeight;
-                const minCardHeight = Math.max(cardHeight, descHeight + 40); // Add padding
-                card.style.minHeight = minCardHeight + 'px';
-            }
-        });
-        
-        console.log('Screen adjusted:', {
-            screenHeight: screenHeight,
-            screenWidth: screenWidth,
-            availableHeight: availableHeight,
-            cardHeight: cardHeight,
-            targetRows: targetRows,
-            maxCards: targetRows * 2
-        });
     }
 }
 
@@ -1337,49 +1364,124 @@ function confirmAutoOrder() {
     });
 }
 
-// Add product function
-function addProduct(productId) {
-    showToast('Add product feature coming soon...');
-}
+    // Orders functions
+    let currentOrderId = null;
+    let currentOrderNumber = null;
+    let currentCustomerName = null;
 
-function loadOrders() {
-    fetch('/api/admin/orders/list')
-        .then(response => response.json())
-        .then(orders => {
-            console.log('Orders loaded:', orders);
+    // Pagination variables for orders
+    let currentOrderPage = 0;
+    const orderPageSize = 10;
+    let hasMoreOrders = true;
+    let isLoadingOrders = false;
+
+    function loadOrders() {
+        currentOrderPage = 0;
+        hasMoreOrders = true;
+
+        const orderItems = document.getElementById('orderItems');
+        if (orderItems) {
+            orderItems.innerHTML = '';
+        }
+
+        loadOrdersPage(true);
+    }
+
+    function updateOrderCounts(orders) {
+        const activeCount = orders.filter(o => o.status === 'PROCESSING').length;
+        const todayCount = orders.filter(o => isToday(o.orderDate)).length;
+        
+        document.getElementById('activeCount').textContent = activeCount;
+        document.getElementById('todayCount').textContent = todayCount;
+    }
+
+    function updateOrderPaginationControls() {
+        let paginationContainer = document.getElementById('orderPaginationControls');
+        if (!paginationContainer) {
             const orderItems = document.getElementById('orderItems');
-            orderItems.innerHTML = orders.map(order => createOrderItem(order)).join('');
+            paginationContainer = document.createElement('div');
+            paginationContainer.id = 'orderPaginationControls';
+            paginationContainer.className = 'pagination-container';
+            orderItems.parentNode.insertBefore(paginationContainer, orderItems.nextSibling);
+        }
+        
+        if (hasMoreOrders) {
+            paginationContainer.innerHTML = `
+                <button class="load-more-btn" onclick="loadOrdersPage()" ${isLoadingOrders ? 'disabled' : ''}>
+                    ${isLoadingOrders ? '로딩 중...' : '더 보기'}
+                </button>
+            `;
+        } else {
+            paginationContainer.innerHTML = `
+                <div class="no-more-orders">모든 주문을 불러왔습니다.</div>
+            `;
+        }
+    }
 
-            // Update counts
-            const activeCount = orders.filter(o => o.status === 'PROCESSING').length;
-            const todayCount = orders.filter(o => isToday(o.orderDate)).length;
-            
-            document.getElementById('activeCount').textContent = activeCount;
-            document.getElementById('todayCount').textContent = todayCount;
-        })
-        .catch(error => {
-            console.error('Error loading orders:', error);
-            showToast('Failed to load orders');
-        });
-}
+    function loadOrdersPage(reset = false) {
+        if (isLoadingOrders) {
+            return;
+        }
 
+        isLoadingOrders = true;
+        updateOrderPaginationControls();
 
-function displayOrderDetails(order) {
-    const invoiceArea = document.getElementById('invoiceArea');
-    
-    invoiceArea.innerHTML = `
-        <div class="invoice-card">
-            <div class="inv-header-bar">
-                <div>
-                    <div class="inv-brand">DaDream</div>
-                    <div class="inv-addr">123 Food Street, Seoul, Korea</div>
+        fetch(`/api/admin/orders/list/paged?page=${currentOrderPage}&size=${orderPageSize}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const orderItems = document.getElementById('orderItems');
+                if (!orderItems) {
+                    return;
+                }
+
+                const orders = data.orders || [];
+
+                if (reset) {
+                    orderItems.innerHTML = '';
+                }
+
+                orderItems.insertAdjacentHTML('beforeend', orders.map(order => createOrderItem(order)).join(''));
+                hasMoreOrders = Boolean(data.hasMore);
+
+                if (orders.length > 0) {
+                    currentOrderPage += 1;
+                }
+
+                document.getElementById('activeCount').textContent = data.activeCount ?? 0;
+                document.getElementById('todayCount').textContent = data.todayCount ?? 0;
+
+            })
+            .catch(error => {
+                console.error('Error loading orders:', error);
+                showToast('Failed to load orders');
+            })
+            .finally(() => {
+                isLoadingOrders = false;
+                updateOrderPaginationControls();
+            });
+    }
+
+    function displayOrderDetails(order) {
+        const invoiceArea = document.getElementById('invoiceArea');
+        
+        invoiceArea.innerHTML = `
+            <div class="invoice-card">
+                <div class="inv-header-bar">
+                    <div>
+                        <div class="inv-brand">DaDream</div>
+                        <div class="inv-addr">123 Food Street, Seoul, Korea</div>
+                    </div>
+                    <div class="inv-title-right">
+                        <div class="inv-title">INVOICE</div>
+                        <div class="inv-num">#${order.orderNumber}</div>
+                        <div class="inv-date">${formatDate(order.orderedAt)}</div>
+                    </div>
                 </div>
-                <div class="inv-title-right">
-                    <div class="inv-title">INVOICE</div>
-                    <div class="inv-num">#${order.orderNumber}</div>
-                    <div class="inv-date">${formatDate(order.orderedAt)}</div>
-                </div>
-            </div>
             
             <div class="inv-section">
                 <div class="inv-lbl">Bill To</div>
@@ -1446,9 +1548,13 @@ function displayOrderDetails(order) {
                     <span class="sp ${getStatusClass(order.status)}">${order.status}</span>
                 </div>
             </div>
-        </div>
-    `;
-}
+            </div>
+        `;
+
+        if (scrollToDetails && window.innerWidth <= 768) {
+            invoiceArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
 
 function exportOrders() {
     // Get current search term

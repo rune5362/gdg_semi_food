@@ -73,8 +73,13 @@
         </div>
 
         <!-- PAGE CONTENT -->
-        <div class="page active">
+        <div class="page active orders-page">
             <div class="topbar">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </button>
                 <div><span class="topbar-title">Orders</span><span class="topbar-breadcrumb">/ Order Management</span>
                 </div>
                 <span class="live-badge"><span class="live-dot"></span>ACTIVE: <span id="activeCount">0</span></span>
@@ -101,7 +106,7 @@
                     <button class="btn-p" onclick="exportOrders()">Excel Export</button>
                 </div>
             </div>
-            <div style="display:flex;flex:1;overflow:hidden">
+            <div class="orders-layout">
                 <div class="order-list">
                     <div class="order-list-header">
                         <div class="order-list-title">Order List</div>
@@ -139,6 +144,9 @@
         </div>
 
     </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
     <script src="/js/admin.js"></script>
 
