@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title th:text="${isEmptyQuery} ? '검색 | 스마트 식품 이커머스 - 다드림' : ${query} + ' 검색 결과 | 스마트 식품 이커머스 - 다드림'">검색 | 스마트 식품 이커머스 - 다드림</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="../static/js/auth.js" th:src="@{/js/auth.js(v=9)}" defer></script>
 <link rel="stylesheet" href="../static/css/common.css" th:href="@{/css/common.css}">
 <link rel="stylesheet" href="../static/css/index.css" th:href="@{/css/index.css}">
@@ -101,21 +102,28 @@
 </style>
 </head>
 <body>
-<header class="site-nav">
-  <div class="site-nav__inner">
+<header class="site-header main-header">
+  <div class="site-header__inner">
     <div class="site-brand"><a th:href="@{/}">스마트 식품 이커머스 - 다드림</a></div>
-    <div class="site-nav__center">
+    <nav class="site-nav" aria-label="상단 메뉴">
       <form class="nav-search" id="nav-search-form" role="search" th:action="@{/search}" action="/search" method="get">
         <label class="sr-only" for="nav-search-input">상품 검색</label>
         <span class="material-symbols-outlined nav-search-icon" aria-hidden="true">search</span>
         <input id="nav-search-input" class="nav-search-input" type="search" name="q" th:value="${query}" placeholder="상품명 검색" autocomplete="off"/>
       </form>
-    </div>
-    <div class="site-nav__icons">
-      <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/cart}" aria-label="장바구니">shopping_cart</a>
-      <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/login.html}" aria-label="로그인">person</a>
-      <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/register.html}" aria-label="회원가입">person_add</a>
-    </div>
+      <div id="guestMenu">
+        <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/login.html}" aria-label="로그인">person</a>
+        <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/register.html}" aria-label="회원가입">person_add</a>
+      </div>
+      <div id="memberMenu" style="display: none;">
+        <a class="site-nav__icon-link cart-link" href="/cart/view" aria-label="장바구니">
+          <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
+          <span id="cart-count-badge" class="cart-count-badge is-hidden">0</span>
+        </a>
+        <a class="site-nav__icon-link material-symbols-outlined" href="/member" id="member-dashboard-link" aria-label="회원페이지">person</a>
+        <a class="site-nav__icon-link material-symbols-outlined" type="button" id="logoutBtn">person_remove</a>
+      </div>
+    </nav>
   </div>
 </header>
 
