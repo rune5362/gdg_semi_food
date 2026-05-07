@@ -231,11 +231,15 @@
         });
 
         if (form) {
+            // 검색어가 있으면 별도 페이지(/search)로 이동, 빈 검색어 시 기존 in-place 필터 유지
             form.addEventListener("submit", (event) => {
-                event.preventDefault();
-                visibleLimit = initialVisibleCount;
-                filterProducts();
-                document.getElementById("best")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                const q = input ? input.value.trim() : "";
+                if (!q) {
+                    event.preventDefault();
+                    visibleLimit = initialVisibleCount;
+                    filterProducts();
+                    document.getElementById("best")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
             });
         }
 

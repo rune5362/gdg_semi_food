@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title th:text="${isEmptyQuery} ? '검색 | 스마트 식품 이커머스 - 다드림' : ${query} + ' 검색 결과 | 스마트 식품 이커머스 - 다드림'">검색 | 스마트 식품 이커머스 - 다드림</title>
+<script src="../static/js/auth.js" th:src="@{/js/auth.js(v=9)}" defer></script>
+<link rel="stylesheet" href="../static/css/common.css" th:href="@{/css/common.css}">
+<link rel="stylesheet" href="../static/css/index.css" th:href="@{/css/index.css}">
+<style>
+  .search-hero {
+    padding: 48px 24px 24px;
+    text-align: center;
+  }
+  .search-hero__title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 6px;
+  }
+  .search-hero__sub {
+    color: #6b7280;
+    margin: 0 0 24px;
+  }
+  .search-hero__form {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 8px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .search-hero__form input[type="search"] {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    font-size: 15px;
+    padding: 8px;
+    background: transparent;
+  }
+  .search-hero__submit {
+    border: 0;
+    background: #2d6a4f;
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .search-section {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 24px;
+  }
+  .search-section__title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: #111827;
+  }
+  .search-trend-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .search-trend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    font-size: 14px;
+    color: #1f2937;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .search-trend-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-color: #2d6a4f;
+    color: #2d6a4f;
+  }
+  .search-empty {
+    text-align: center;
+    padding: 48px 16px;
+    color: #6b7280;
+  }
+  .search-empty__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <div class="site-nav__inner">
+    <div class="site-brand"><a th:href="@{/}">스마트 식품 이커머스 - 다드림</a></div>
+    <div class="site-nav__center">
+      <form class="nav-search" id="nav-search-form" role="search" th:action="@{/search}" action="/search" method="get">
+        <label class="sr-only" for="nav-search-input">상품 검색</label>
+        <span class="material-symbols-outlined nav-search-icon" aria-hidden="true">search</span>
+        <input id="nav-search-input" class="nav-search-input" type="search" name="q" th:value="${query}" placeholder="상품명 검색" autocomplete="off"/>
+      </form>
+    </div>
+    <div class="site-nav__icons">
+      <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/cart}" aria-label="장바구니">shopping_cart</a>
+      <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/login.html}" aria-label="로그인">person</a>
+      <a class="site-nav__icon-link material-symbols-outlined" th:href="@{/register.html}" aria-label="회원가입">person_add</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="search-hero">
+    <h1 class="search-hero__title" th:if="${isEmptyQuery}">무엇을 찾고 계신가요?</h1>
+    <h1 class="search-hero__title" th:unless="${isEmptyQuery}">
+      '<span th:text="${query}">검색어</span>' 검색 결과
+    </h1>
+    <p class="search-hero__sub" th:if="${isEmptyQuery}">상품명이나 키워드로 검색해보세요.</p>
+    <p class="search-hero__sub" th:unless="${isEmptyQuery}">
+      <span th:text="${#lists.size(products)}">0</span>건의 상품이 검색되었습니다.
+    </p>
+    <form class="search-hero__form" th:action="@{/search}" action="/search" method="get" role="search">
+      <span class="material-symbols-outlined" aria-hidden="true">search</span>
+      <input type="search" name="q" th:value="${query}" placeholder="상품명, 키워드 검색" autocomplete="off"/>
+      <button type="submit" class="search-hero__submit">검색</button>
+    </form>
+  </section>
+
+  <section class="search-section" th:if="${keywords != null and !#lists.isEmpty(keywords)}">
+    <h2 class="search-section__title" th:text="${isEmptyQuery} ? '인기 트렌드 키워드' : '추천 키워드'">트렌드 키워드</h2>
+    <div class="search-trend-chips">
+      <a th:each="keyword, st : ${keywords}"
+         th:if="${st.index < 12}"
+         class="search-trend-chip"
+         th:href="@{/search(q=${keyword.keyword})}">
+        <span class="material-symbols-outlined" style="font-size:16px;">trending_up</span>
+        <span th:text="${keyword.keyword}">키워드</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <h2 class="search-section__title" th:if="${isEmptyQuery}">인기 상품</h2>
+    <h2 class="search-section__title" th:unless="${isEmptyQuery}">상품 검색 결과</h2>
+
+    <div th:if="${products == null or #lists.isEmpty(products)}" class="search-empty">
+      <div class="search-empty__title" th:if="${isEmptyQuery}">표시할 상품이 없습니다.</div>
+      <div class="search-empty__title" th:unless="${isEmptyQuery}">
+        '<span th:text="${query}">검색어</span>'에 대한 검색 결과가 없습니다.
+      </div>
+      <div th:unless="${isEmptyQuery}">다른 검색어를 시도하거나 위의 추천 키워드를 클릭해보세요.</div>
+    </div>
+
+    <div th:if="${products != null and !#lists.isEmpty(products)}" class="products-grid">
+      <div class="product-item" th:each="product : ${products}">
+        <div class="product-card" th:data-url="@{/product/view(id=${product.id})}" onclick="location.href=this.getAttribute('data-url')">
+          <div class="product-card__media">
+            <img alt="" class="product-card__image" th:src="${product.imageUrl}"/>
+            <div class="product-card__action">
+              <a class="product-card__button" th:href="@{/product/view(id=${product.id})}">상품 보기</a>
+            </div>
+          </div>
+          <h3 class="product-card__name" th:text="${product.name}">상품명</h3>
+          <div class="product-card__price">
+            <span class="product-card__price-number" th:if="${product.price != null}" th:text="${#numbers.formatInteger(product.price, 3, 'COMMA')}"></span>
+            <span th:if="${product.price != null}">원</span>
+            <span th:unless="${product.price != null}">가격 미정</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__grid">
+    <div>
+      <div class="site-footer__brand">스마트 식품 이커머스 - 다드림</div>
+      <p class="site-footer__copy">오늘 먹는 스마트한 한 끼가 내일의 건강한 에너지가 됩니다.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

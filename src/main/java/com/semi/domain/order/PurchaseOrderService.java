@@ -1,5 +1,6 @@
 package com.semi.domain.order;
 
+import com.semi.domain.cart.CartItemRepository;
 import com.semi.domain.mail.MailService;
 import com.semi.domain.member.Member;
 import com.semi.domain.member.MemberRepository;
@@ -26,6 +27,7 @@ public class PurchaseOrderService {
     private final PurchaseOrderItemRepository purchaseOrderItemRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
+    private final CartItemRepository cartItemRepository;
     private final MailService mailService;
 
     @Transactional
@@ -59,7 +61,8 @@ public class PurchaseOrderService {
                 .subtotal(totalPrice)
                 .shippingAddress(request.shippingAddress())
                 .paymentMethod(request.paymentMethod())
-                .paymentStatus(request.paymentStatus())
+                // PG 미연동 — 결제는 버튼 클릭 = 완료로 시뮬레이션. 클라이언트 입력 무시하고 서버에서 단정.
+                .paymentStatus("COMPLETED")
                 .build();
 
         lines.forEach(line -> order.addItem(PurchaseOrderItem.builder()
@@ -72,8 +75,14 @@ public class PurchaseOrderService {
 
         PurchaseOrder savedOrder = purchaseOrderRepository.save(order);
 
-        // payment_status가 COMPLETED이면 ADMIN에게 메일 발송
+        // payment_status가 COMPLETED이면 ADMIN에게 메일 발송 + 주문된 상품을 장바구니에서 삭제
         if ("COMPLETED".equals(savedOrder.getPaymentStatus())) {
+            List<Long> orderedProductIds = lines.stream()
+                    .map(line -> line.product().getId())
+                    .toList();
+            if (!orderedProductIds.isEmpty()) {
+                cartItemRepository.deleteByMemberIdAndProductIdIn(memberId, orderedProductIds);
+            }
             sendOrderCompletedMail(savedOrder);
         }
 

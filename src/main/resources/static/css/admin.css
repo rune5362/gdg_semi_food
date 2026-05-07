@@ -454,20 +454,12 @@ body {
     color: #bbb
 }
 
-<<<<<<< HEAD
-/* Word cloud */
-=======
 /* Word cloud - Natural organic layout */
->>>>>>> 06bd07ce57b7c275cfb7b67c399149dd1ff20276
 .word-cloud {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
-<<<<<<< HEAD
-    padding: 8px 0;
-    min-height: 90px
-=======
     justify-content: center;
     padding: 20px;
     min-height: 120px;
@@ -534,7 +526,6 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
->>>>>>> 06bd07ce57b7c275cfb7b67c399149dd1ff20276
 }
 
 /* Toast */

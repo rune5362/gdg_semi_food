@@ -15,7 +15,7 @@
     <div class="site-header__inner">
         <div class="site-brand"><a th:href="@{/}">스마트 식품 이커머스 - 다드림</a></div>
         <nav class="site-nav" aria-label="상단 메뉴">
-            <form class="nav-search" id="nav-search-form" role="search" action="#best">
+            <form class="nav-search" id="nav-search-form" role="search" th:action="@{/search}" action="/search" method="get">
                 <label class="sr-only" for="nav-search-input">상품 검색</label>
                 <span class="material-symbols-outlined nav-search-icon" aria-hidden="true">search</span>
                 <input id="nav-search-input" class="nav-search-input" type="search" name="q" placeholder="상품명 검색" autocomplete="off"/>
@@ -80,7 +80,7 @@
                         th:if="${keywordStat.index < 20}"
                         th:classappend="${keywordStat.index >= 10} ? ' trend-keyword-card--extra is-hidden' : ''"
                         class="trend-keyword-card">
-                        <a class="trend-keyword-card__link js-trend-keyword-link" th:href="@{/dashboard_search_result(q=${keyword.keyword})}">
+                        <a class="trend-keyword-card__link js-trend-keyword-link" th:href="@{/search(q=${keyword.keyword})}">
                             <div class="trend-keyword-card__top">
                                 <span class="trend-keyword-card__rank">
                                     <span th:text="${keywordStat.index + 1}">1</span>&#50948;

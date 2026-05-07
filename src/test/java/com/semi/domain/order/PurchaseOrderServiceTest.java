@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -45,8 +46,8 @@ class PurchaseOrderServiceTest {
     private PurchaseOrderService purchaseOrderService;
 
     @Test
-    @DisplayName("주문 생성 후에도 장바구니 항목은 삭제하지 않는다")
-    void createOrder_keepsCartItems() {
+    @DisplayName("결제 완료 주문 생성 시 주문된 상품은 장바구니에서 삭제된다")
+    void createOrder_deletesOrderedCartItems_whenPaymentCompleted() {
         // given
         Long memberId = 7L;
         Long productId = 10L;
@@ -74,10 +75,8 @@ class PurchaseOrderServiceTest {
         CreatePurchaseOrderRequest request = new CreatePurchaseOrderRequest(
                 List.of(new CreatePurchaseOrderRequest.Item(productId, 2)),
                 0,
-                "Gyeongsangnam-do, Namhae-gun",                            // 3. shippingAddress (추가)
-                "EASY_PAY",                                                // 4. paymentMethod (추가)
-                "PENDING"
-                
+                "Gyeongsangnam-do, Namhae-gun",                            // 3. shippingAddress
+                "EASY_PAY"                                                 // 4. paymentMethod
         );
 
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
@@ -89,7 +88,10 @@ class PurchaseOrderServiceTest {
         purchaseOrderService.createOrder(memberId, request);
 
         // then
-        then(cartItemRepository).shouldHaveNoInteractions();
+        // 주문 트랜잭션 내에서 해당 회원의 장바구니 일괄 삭제가 호출됨을 검증
+        // (JPA id 자동 생성 특성상 productId 정확 매칭은 통합테스트에서 검증)
+        then(cartItemRepository).should()
+                .deleteByMemberIdAndProductIdIn(eq(memberId), any());
     }
 
     @Test

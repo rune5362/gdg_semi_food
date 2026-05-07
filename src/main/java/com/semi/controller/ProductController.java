@@ -62,6 +62,33 @@ public class ProductController {
         return "product";
     }
 
+    @GetMapping("/search")
+    public String searchPage(
+            @RequestParam(name = "q", required = false) String query,
+            Model model
+    ) {
+        String trimmedQuery = query == null ? "" : query.trim();
+
+        LocalDate keywordCollectedDate = LocalDate.of(2026, 4, 27);
+        List<TrendKeyword> keywords = trendKeywordService.getKeywordsCollectedOnOrderById(keywordCollectedDate);
+
+        List<Product> products;
+        boolean isEmptyQuery = trimmedQuery.isEmpty();
+        if (isEmptyQuery) {
+            // 빈 쿼리: 인기 상품 (현재는 전체 상품 상위 12개로 대체, 향후 주문 빈도 기반 교체 예정)
+            List<Product> all = productService.getAllProduct();
+            products = all.size() > 12 ? all.subList(0, 12) : all;
+        } else {
+            products = productService.searchProductsByNameOrDescription(trimmedQuery);
+        }
+
+        model.addAttribute("query", trimmedQuery);
+        model.addAttribute("isEmptyQuery", isEmptyQuery);
+        model.addAttribute("products", products);
+        model.addAttribute("keywords", keywords);
+        return "search";
+    }
+
     @GetMapping("/dashboard_search_result")
     public String dashboardSearchResult(
             @AuthenticationPrincipal MemberDetails memberDetails,

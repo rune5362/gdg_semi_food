@@ -10,8 +10,7 @@ public record CreatePurchaseOrderRequest(
         @NotEmpty List<@Valid Item> items,
         @Min(0) int usedPoints,
         String shippingAddress,
-        String paymentMethod,
-        String paymentStatus
+        String paymentMethod
 ) {
     public record Item(
             @NotNull Long productId,
