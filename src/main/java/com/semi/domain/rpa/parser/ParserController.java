@@ -70,8 +70,8 @@ public class ParserController {
         return result;
     }    
 
-    //[ ]TODO 테스트가 끝나면 막을 것, 제품 공급자 api는 호출 할 때 마다 다른값이 나옴으로 동시에 저장 필요.
-    @GetMapping("/api/Suppliers/saveWithSequentialId") // http://localhost:8080/api/Suppliers/saveWithSequentialId?rankId=2182837573&syncDate=20260429
+    //[x]TODO 테스트가 끝나면 막을 것, 제품 공급자 api는 호출 할 때 마다 다른값이 나옴으로 동시에 저장 필요.
+    // @GetMapping("/api/Suppliers/saveWithSequentialId") // http://localhost:8080/api/Suppliers/saveWithSequentialId?rankId=2182837573&syncDate=20260429
     public List<Supplier> suppliersSaveWithSequentialId(
         @RequestParam @NotNull (message = "rankId는 필수 입력값입니다.") Long rankId,
         @RequestParam @NotBlank(message = "syncDate는 필수 입력값입니다.") String syncDate
