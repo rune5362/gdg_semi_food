@@ -587,6 +587,23 @@
         if (state.running) return;
         const config = viewConfigs[viewName];
         const date = document.getElementById(config.dateId).value;
+        
+        if (viewName === 'supplier' || viewName === 'trend_keyword') {
+            try {
+                const response = await fetch(`/rpa/data/daily/details?date=${date}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.products && data.products.length > 0) {
+                        const targetName = viewName === 'supplier' ? '공급자를' : '트렌드 키워드를';
+                        alert(`product 테이블에 종속 된 제품이 있으면 ${targetName} 삭제 할 수 없습니다.`);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to check dependent products", e);
+            }
+        }
+
         const confirmed = await showYesNoDialog(`${date} 기준 ${viewName} view의 삭제 가능 데이터를 삭제할까요?`);
         if (!confirmed) return;
         const response = await fetch(`/rpa/data/daily/view?view=${viewName}&date=${date}&confirm=true`, { method: "DELETE" });

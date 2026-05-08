@@ -267,12 +267,9 @@ public class SupplierAndProductService {
                 .autoOrder(false)
                 .crawledAt(sapMappedProduct.getCrawledAt())
                 .syncDate(sapMappedProduct.getSyncDate())
-<<<<<<< HEAD
                 .stock(0) // 머지하고 하루뒤부터 재고 정보가 없으면 에러가 떠서 추가 2026_05_08_Fri_1201
                 .availableStock(0) // 머지하고 하루뒤부터 재고 정보가 없으면 에러가 떠서 추가 2026_05_08_Fri_1204
-=======
                 .category(ProductCategoryClassifier.classify(sapMappedProduct.getName()))
->>>>>>> 9f793745554487a436d820184a8c6e3ca5f6a26e
                 .build();
             sapNewProducts.add(sapProduct);
         }
