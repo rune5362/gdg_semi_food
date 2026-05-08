@@ -45,7 +45,7 @@ public class TrendKeywordParserService {
             .retrieve()
             .body(String.class));
 
-        log.info("네이버 응답 원문: " + rawJson);
+        RpaLogContext.info(log, "네이버 응답 원문: " + rawJson);
         
         // data가 json/xml 둘 다 올 수 있기 때문에, Jackson이 자동으로 파싱하도록 설정
         final List<TrendKeywordResponse.TrendKeywordItem> response = rpaRetry("네이버 키워드 목록 조회", () -> restClient.get()
@@ -60,7 +60,7 @@ public class TrendKeywordParserService {
             .body(new ParameterizedTypeReference<List<TrendKeywordResponse.TrendKeywordItem>>() {}));  // 여기서 Jackson MessageConverter가 자동 동작함
             // .body(TrendKeywordResponse.class); // 여기서 Jackson MessageConverter가 자동 동작함
 
-        log.info("수신된 데이터: " + response);
+        RpaLogContext.info(log, "수신된 데이터: " + response);
         return response;
     }
 
@@ -128,7 +128,7 @@ public class TrendKeywordParserService {
         // 4. 최종 저장
         if (!keywordsToSave.isEmpty()) {
             repository.saveAllAndFlush(keywordsToSave);
-            log.info("{}건 저장 완료 (마지막 ID: {})", keywordsToSave.size(), nextId);
+            RpaLogContext.info(log, "{}건 저장 완료 (마지막 ID: {})", keywordsToSave.size(), nextId);
         }
         return keywordsToSave;
     }
@@ -180,7 +180,7 @@ public class TrendKeywordParserService {
                 return action.get();
             } catch (RuntimeException exception) {
                 lastException = exception;
-                log.warn("{} 실패. attempt={}/3", actionName, attempt, exception);
+                RpaLogContext.warn(log, "{} 실패. attempt={}/3", actionName, attempt, exception);
             }
         }
         throw lastException;

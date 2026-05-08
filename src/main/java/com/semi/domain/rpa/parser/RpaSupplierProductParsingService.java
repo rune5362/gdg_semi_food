@@ -44,6 +44,8 @@ public class RpaSupplierProductParsingService {
         } catch (RuntimeException exception) {
             failRpaLog(rpaLog, rpaStartedAt, rpaResults, exception);
             throw exception;
+        } finally {
+            RpaLogContext.clear();
         }
         return rpaResults;
     }

@@ -49,7 +49,7 @@ public class SupplierAndProductService {
             .header("Referer", sapTargetSiteUrl)
             .retrieve()
             .body(String.class));
-        log.info("네이버 공급자/상품 응답 원문: " + sapRawData);
+        RpaLogContext.info(log, "네이버 공급자/상품 응답 원문: " + sapRawData);
 
         SupplierAndProductResponse response = sapRetry("네이버 공급자/상품 상세 조회", () -> restClient.get()
             .uri(sapTargetDataUrl)
@@ -59,7 +59,7 @@ public class SupplierAndProductService {
             .header("Referer", sapTargetSiteUrl)
             .retrieve()
             .body(SupplierAndProductResponse.class)); 
-        log.info("수신된 공급자/상품 데이터: " + response);
+        RpaLogContext.info(log, "수신된 공급자/상품 데이터: " + response);
         return response;
     }
 
@@ -76,7 +76,7 @@ public class SupplierAndProductService {
             .retrieve()
             .body(SupplierAndProductResponse.class));
 
-        log.info("수신된 공급자/상품 데이터: " + sapResponse);
+        RpaLogContext.info(log, "수신된 공급자/상품 데이터: " + sapResponse);
         return sapResponse;
     }
 
@@ -124,7 +124,7 @@ public class SupplierAndProductService {
         // 2. DTO -> VO 변환 (MapStruct 사용)
         final List<Supplier> parsedSuppliers = supplierMapper.toVoList(sapSupplierItems); // 파싱된 데이터
         if (parsedSuppliers == null || parsedSuppliers.isEmpty()) {
-            log.info("파싱된 공급자 데이터가 없습니다.");
+            RpaLogContext.info(log, "파싱된 공급자 데이터가 없습니다.");
             return Map.of();
         }
 
@@ -163,7 +163,7 @@ public class SupplierAndProductService {
 
         if (!sapNewSuppliers.isEmpty()) {
             supplierRepository.saveAllAndFlush(sapNewSuppliers);
-            log.info("{}건의 Supplier 저장 완료 (마지막 ID: {})", sapNewSuppliers.size(), sapNextId);
+            RpaLogContext.info(log, "{}건의 Supplier 저장 완료 (마지막 ID: {})", sapNewSuppliers.size(), sapNextId);
         }
 
         return sapSupplierMap;
@@ -216,7 +216,7 @@ public class SupplierAndProductService {
         // 2. DTO -> VO 변환 (MapStruct 사용)
         final List<Product> parsedProducts = productMapper.toVoList(sapProductItems); // 파싱된 데이터
         if (parsedProducts == null || parsedProducts.isEmpty()) {
-            log.info("파싱된 제품 데이터가 없습니다.");
+            RpaLogContext.info(log, "파싱된 제품 데이터가 없습니다.");
             return List.of();
         }
 
@@ -226,7 +226,7 @@ public class SupplierAndProductService {
         // 파싱한 데이터가 기존 데이터보다 최신이 아니라면 안내용 리스트 반환
         if (latestSavedRecord != null 
             && latestParsedProduct.getCrawledAt().toLocalDate().isBefore(latestSavedRecord.getCrawledAt().toLocalDate())) {
-            log.info("동일하거나 이전 날짜의 제품 데이터입니다. 저장하지 않습니다. "
+            RpaLogContext.info(log, "동일하거나 이전 날짜의 제품 데이터입니다. 저장하지 않습니다. "
                 + "파싱 날짜: " + latestParsedProduct.getCrawledAt().toLocalDate()
                 + ", DB 최신 날짜: " + latestSavedRecord.getCrawledAt().toLocalDate());            
             return List.of();
@@ -266,13 +266,15 @@ public class SupplierAndProductService {
                 .autoOrder(false)
                 .crawledAt(sapMappedProduct.getCrawledAt())
                 .syncDate(sapMappedProduct.getSyncDate())
+                .stock(0) // 머지하고 하루뒤부터 재고 정보가 없으면 에러가 떠서 추가 2026_05_08_Fri_1201
+                .availableStock(0) // 머지하고 하루뒤부터 재고 정보가 없으면 에러가 떠서 추가 2026_05_08_Fri_1204
                 .build();
             sapNewProducts.add(sapProduct);
         }
 
         if (!sapNewProducts.isEmpty()) {
             productRepository.saveAllAndFlush(sapNewProducts);
-            log.info("{}건의 Product 저장 완료 (마지막 ID: {})", sapNewProducts.size(), sapNextId);
+            RpaLogContext.info(log, "{}건의 Product 저장 완료 (마지막 ID: {})", sapNewProducts.size(), sapNextId);
         }
 
         return sapNewProducts;
@@ -319,7 +321,7 @@ public class SupplierAndProductService {
                 return sapAction.get();
             } catch (RuntimeException sapException) {
                 sapLastException = sapException;
-                log.warn("{} 실패. attempt={}/3", sapActionName, sapAttempt, sapException);
+                RpaLogContext.warn(log, "{} 실패. attempt={}/3", sapActionName, sapAttempt, sapException);
             }
         }
         throw sapLastException;

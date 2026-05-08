@@ -63,6 +63,10 @@ public class RpaParsingLogFileService {
                 + ", message=" + result.message());
         }
 
+        lines.add("");
+        lines.add("--- 세부 실행 로그 ---");
+        lines.addAll(RpaLogContext.getLogs());
+
         return lines;
     }
 }
