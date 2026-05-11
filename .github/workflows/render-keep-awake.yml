@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: 서버 깨우기
         # 위에서 정의한 TARGET_URL 환경변수를 사용
-        run: curl -X GET "$TARGET_URL/load"
+        run: curl -X GET "$TARGET_URL"
 
 # 주의
 # Render 무료 티어는 한 달에 750시간의 가동 시간을 줍니다.
