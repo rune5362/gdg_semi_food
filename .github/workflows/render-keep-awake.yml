@@ -1,6 +1,8 @@
 name: Render Keep Awake
 
 on:
+  push:
+    - main
   schedule:
     - cron: '5,15,25,35,45,55 * * * *'
   workflow_dispatch:
