@@ -22,6 +22,7 @@ jobs:
           echo "Pinging Render server..."
           curl -fsS -o /dev/null -w "HTTP Status: %{http_code}\n" "$TARGET_URL"
 
+
 # 주의
 # Render 무료 티어는 한 달에 750시간의 가동 시간을 줍니다.
 # 한 달(31일)을 24시간 풀가동하면 744시간이 소요됩니다.
